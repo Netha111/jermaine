@@ -45,7 +45,7 @@ export default function Dashboard() {
 
   const handleGenerateImages = () => {
     triggerWebhook(
-      "https://n8n.srv1208919.hstgr.cloud/webhook-test/1703fb64-ec58-4e56-9ce7-bd9e16e15220",
+      "https://n8n.srv1208919.hstgr.cloud/webhook/1703fb64-ec58-4e56-9ce7-bd9e16e15220",
       "images",
       "Images will be generated soon!"
     );
@@ -53,7 +53,7 @@ export default function Dashboard() {
 
   const handleManualTrigger = () => {
     triggerWebhook(
-      "https://n8n.srv1208919.hstgr.cloud/webhook-test/289d4090-ac38-4c90-9876-5ca765e46211",
+      "https://n8n.srv1208919.hstgr.cloud/webhook/289d4090-ac38-4c90-9876-5ca765e46211",
       "manual",
       "Video processing started. Check email!"
     );
@@ -67,7 +67,7 @@ export default function Dashboard() {
 
   const handlePostVideo = () => {
     triggerWebhook(
-      "https://n8n.srv1208919.hstgr.cloud/webhook-test/8f91f8e3-d06f-4e73-a545-e18065750416",
+      "https://n8n.srv1208919.hstgr.cloud/webhook/8f91f8e3-d06f-4e73-a545-e18065750416",
       "post",
       "Video posted to social media!"
     );
@@ -144,7 +144,7 @@ export default function Dashboard() {
             <div className="space-y-4 relative z-10">
               <div className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="font-medium text-lg">Manual Trigger</h3>
+                  <h3 className="font-medium text-lg">Blog Post Video</h3>
                   <span className="text-xs uppercase tracking-wider text-pink-300/80 font-bold bg-pink-500/10 px-2 py-1 rounded">Fast</span>
                 </div>
                 <p className="text-sm text-white/50 mb-4">Quick generation with default settings.</p>

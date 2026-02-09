@@ -1,5 +1,7 @@
 "use client";
 
+import Image from 'next/image';
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Clapperboard,
@@ -20,7 +22,7 @@ export default function Dashboard() {
 
   // Initialize video URL with cache busting on mount
   useEffect(() => {
-    const baseUrl = "https://cdssxtquayzijmbnlqmt.supabase.co/storage/v1/object/public/n8n/finalbefore2.mp3";
+    const baseUrl = "";
     const timestamp = new Date().getTime();
     setVideoUrl(`${baseUrl}?t=${timestamp}`);
   }, []);
@@ -31,6 +33,11 @@ export default function Dashboard() {
   };
 
   const triggerWebhook = async (url: string, label: string, successMessage: string) => {
+    if (!url) {
+      showToast("Debug: URL not configured (Simulation)", 'info');
+      return;
+    }
+
     setLoading(label);
     try {
       await fetch(url);
@@ -45,7 +52,7 @@ export default function Dashboard() {
 
   const handleGenerateImages = () => {
     triggerWebhook(
-      "https://n8n.srv1208919.hstgr.cloud/webhook/1703fb64-ec58-4e56-9ce7-bd9e16e15220",
+      "",
       "images",
       "Images will be generated soon!"
     );
@@ -53,7 +60,7 @@ export default function Dashboard() {
 
   const handleManualTrigger = () => {
     triggerWebhook(
-      "https://n8n.srv1208919.hstgr.cloud/webhook/289d4090-ac38-4c90-9876-5ca765e46211",
+      "",
       "manual",
       "Video processing started. Check email!"
     );
@@ -61,13 +68,13 @@ export default function Dashboard() {
 
   const handleDynamicTrigger = () => {
     // Open the external n8n form for dynamic configuration
-    window.open("https://n8n.srv1208919.hstgr.cloud/form/9d706a5b-d90f-42a8-8e6b-cf75ac0bf902", "_blank");
-    showToast("Opening configuration form...", "info");
+    // window.open("", "_blank"); // Disabled for now
+    showToast("Configuration form URL not set", "info");
   };
 
   const handlePostVideo = () => {
     triggerWebhook(
-      "https://n8n.srv1208919.hstgr.cloud/webhook/8f91f8e3-d06f-4e73-a545-e18065750416",
+      "",
       "post",
       "Video posted to social media!"
     );
@@ -78,7 +85,7 @@ export default function Dashboard() {
       {/* Toast Notification */}
       {toast && (
         <div className="fixed top-6 right-6 z-50 animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="glass-panel px-6 py-4 rounded-xl flex items-center gap-3 text-white border-l-4 border-l-purple-500">
+          <div className="glass-panel px-6 py-4 rounded-xl flex items-center gap-3 text-slate-800 border-l-4 border-l-purple-500">
             {toast.type === 'success' ? <CheckCircle2 size={20} className="text-green-400" /> : <Zap size={20} className="text-yellow-400" />}
             <p className="font-medium">{toast.message}</p>
           </div>
@@ -86,14 +93,24 @@ export default function Dashboard() {
       )}
 
       {/* Header */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div>
-          <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400 tracking-tight">
-            Creator Studio
-          </h1>
-          <p className="text-white/60 mt-2 text-lg">Manage your content generation pipeline</p>
+      {/* Header */}
+      <header className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8 w-full">
+        <div className="flex-shrink-0">
+          <Image
+            src="/logo.png"
+            alt="Creator Studio"
+            width={400}
+            height={133}
+            className="w-auto h-24 md:h-32 object-contain"
+            priority
+          />
         </div>
-        <div className="flex items-center gap-3 px-4 py-2 glass-panel rounded-full text-sm font-medium text-white/80">
+
+        <p className="text-slate-500 text-lg font-medium text-center md:text-left flex-1 md:text-center">
+          Manage your content generation pipeline
+        </p>
+
+        <div className="flex items-center gap-3 px-4 py-2 glass-panel rounded-full text-sm font-medium text-slate-700 whitespace-nowrap">
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
           System Operational
         </div>
@@ -104,20 +121,20 @@ export default function Dashboard() {
         <div className="lg:col-span-5 space-y-6">
 
           {/* Image Generation Card */}
-          <section className="glass-panel rounded-3xl p-8 transition-all hover:bg-white/[0.02]">
+          <section className="glass-panel rounded-3xl p-8 transition-all hover:bg-black/[0.02]">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 rounded-2xl bg-purple-500/20 text-purple-300">
+              <div className="p-3 rounded-2xl bg-purple-100 text-purple-600">
                 <ImageIcon size={28} />
               </div>
-              <h2 className="text-2xl font-semibold">Generate Images</h2>
+              <h2 className="text-2xl font-semibold text-slate-800">Generate Images</h2>
             </div>
-            <p className="text-white/60 mb-8 leading-relaxed">
+            <p className="text-slate-500 mb-8 leading-relaxed">
               Create stunning visuals for your campaigns. Automatically uploads to Instagram & Facebook.
             </p>
             <button
               onClick={handleGenerateImages}
               disabled={loading === 'images'}
-              className="w-full glass-button py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-3 text-white group"
+              className="w-full glass-button py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-3 text-slate-700 group"
             >
               {loading === 'images' ? (
                 <Loader2 size={24} className="animate-spin" />
@@ -134,40 +151,41 @@ export default function Dashboard() {
           <section className="glass-panel rounded-3xl p-8 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-32 bg-pink-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
+
             <div className="flex items-center gap-4 mb-6 relative z-10">
-              <div className="p-3 rounded-2xl bg-pink-500/20 text-pink-300">
+              <div className="p-3 rounded-2xl bg-pink-100 text-pink-600">
                 <Clapperboard size={28} />
               </div>
-              <h2 className="text-2xl font-semibold">Generate Videos</h2>
+              <h2 className="text-2xl font-semibold text-slate-800">Generate Videos</h2>
             </div>
 
             <div className="space-y-4 relative z-10">
-              <div className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
+              <div className="p-4 rounded-xl bg-black/5 border border-black/5 hover:border-black/10 transition-colors">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="font-medium text-lg">Blog Post Video</h3>
-                  <span className="text-xs uppercase tracking-wider text-pink-300/80 font-bold bg-pink-500/10 px-2 py-1 rounded">Fast</span>
+                  <h3 className="font-medium text-lg text-slate-800">Blog Post Video</h3>
+                  <span className="text-xs uppercase tracking-wider text-pink-600 font-bold bg-pink-100 px-2 py-1 rounded">Fast</span>
                 </div>
-                <p className="text-sm text-white/50 mb-4">Quick generation with default settings.</p>
+                <p className="text-sm text-slate-500 mb-4">Quick generation with default settings.</p>
                 <button
                   onClick={handleManualTrigger}
                   disabled={loading === 'manual'}
-                  className="w-full glass-button py-3 rounded-lg font-medium text-white/90 hover:text-white flex items-center justify-center gap-2"
+                  className="w-full glass-button py-3 rounded-lg font-medium text-slate-700 hover:text-slate-900 flex items-center justify-center gap-2"
                 >
                   {loading === 'manual' ? <Loader2 size={18} className="animate-spin" /> : <Play size={18} strokeWidth={2.5} />}
                   Run Process
                 </button>
               </div>
 
-              <div className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
+              <div className="p-4 rounded-xl bg-black/5 border border-black/5 hover:border-black/10 transition-colors">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="font-medium text-lg">Dynamic Trigger</h3>
-                  <span className="text-xs uppercase tracking-wider text-blue-300/80 font-bold bg-blue-500/10 px-2 py-1 rounded">Custom</span>
+                  <h3 className="font-medium text-lg text-slate-800">Dynamic Trigger</h3>
+                  <span className="text-xs uppercase tracking-wider text-blue-600 font-bold bg-blue-100 px-2 py-1 rounded">Custom</span>
                 </div>
-                <p className="text-sm text-white/50 mb-4">Open configuration for tailored content.</p>
+                <p className="text-sm text-slate-500 mb-4">Open configuration for tailored content.</p>
                 <button
                   onClick={handleDynamicTrigger}
                   disabled={loading === 'dynamic'}
-                  className="w-full glass-button py-3 rounded-lg font-medium text-white/90 hover:text-white flex items-center justify-center gap-2"
+                  className="w-full glass-button py-3 rounded-lg font-medium text-slate-700 hover:text-slate-900 flex items-center justify-center gap-2"
                 >
                   {loading === 'dynamic' ? <Loader2 size={18} className="animate-spin" /> : <Settings size={18} />}
                   Configure & Run
@@ -181,14 +199,14 @@ export default function Dashboard() {
         <div className="lg:col-span-7 flex flex-col h-full">
           <section className="glass-panel rounded-3xl p-2 flex-grow flex flex-col h-full min-h-[500px]">
             <div className="flex items-center justify-between px-6 py-4">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
+              <h2 className="text-xl font-semibold flex items-center gap-2 text-slate-800">
                 <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                 Live Preview
               </h2>
-              <span className="text-sm text-white/40">Latest Output</span>
+              <span className="text-sm text-slate-400">Latest Output</span>
             </div>
 
-            <div className="flex-grow bg-black/40 rounded-2xl relative overflow-hidden group mx-4 mb-4">
+            <div className="flex-grow bg-slate-100 rounded-2xl relative overflow-hidden group mx-4 mb-4 border border-slate-200">
               {videoUrl ? (
                 <video
                   ref={videoRef}
@@ -201,7 +219,7 @@ export default function Dashboard() {
                 </video>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Loader2 size={48} className="animate-spin text-white/20" />
+                  <Loader2 size={48} className="animate-spin text-slate-300" />
                 </div>
               )}
             </div>
@@ -209,8 +227,8 @@ export default function Dashboard() {
             <div className="p-6 pt-2">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <h3 className="font-medium text-white/90">Ready to Publish?</h3>
-                  <p className="text-sm text-white/50">Push this content to your connected active channels.</p>
+                  <h3 className="font-medium text-slate-800">Ready to Publish?</h3>
+                  <p className="text-sm text-slate-500">Push this content to your connected active channels.</p>
                 </div>
                 <button
                   onClick={handlePostVideo}

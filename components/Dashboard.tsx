@@ -22,7 +22,7 @@ export default function Dashboard() {
 
   // Initialize video URL with cache busting on mount
   useEffect(() => {
-    const baseUrl = "";
+    const baseUrl = "https://ifbivvpbwqsfxmbqaski.supabase.co/storage/v1/object/public/n8n/final.mp4";
     const timestamp = new Date().getTime();
     setVideoUrl(`${baseUrl}?t=${timestamp}`);
   }, []);
@@ -68,13 +68,13 @@ export default function Dashboard() {
 
   const handleDynamicTrigger = () => {
     // Open the external n8n form for dynamic configuration
-    // window.open("", "_blank"); // Disabled for now
-    showToast("Configuration form URL not set", "info");
+    window.open("https://n8n.srv1242805.hstgr.cloud/form/9d706a5b-d90f-42a8-8e6b-cf75ac0bf902", "_blank");
+    showToast("Opening configuration form...", "info");
   };
 
   const handlePostVideo = () => {
     triggerWebhook(
-      "",
+      "https://n8n.srv1242805.hstgr.cloud/webhook/8f91f8e3-d06f-4e73-a545-e18065750416",
       "post",
       "Video posted to social media!"
     );

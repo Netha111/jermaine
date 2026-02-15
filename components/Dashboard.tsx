@@ -51,19 +51,8 @@ export default function Dashboard() {
   };
 
   const handleGenerateImages = () => {
-    triggerWebhook(
-      "",
-      "images",
-      "Images will be generated soon!"
-    );
-  };
-
-  const handleManualTrigger = () => {
-    triggerWebhook(
-      "",
-      "manual",
-      "Video processing started. Check email!"
-    );
+    window.open("https://n8n.srv1242805.hstgr.cloud/form/e851a0b7-6542-4ebc-8e2a-388199b05b4c", "_blank");
+    showToast("Opening image generation form...", "info");
   };
 
   const handleDynamicTrigger = () => {
@@ -160,21 +149,7 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-4 relative z-10">
-              <div className="p-4 rounded-xl bg-black/5 border border-black/5 hover:border-black/10 transition-colors">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="font-medium text-lg text-slate-800">Blog Post Video</h3>
-                  <span className="text-xs uppercase tracking-wider text-pink-600 font-bold bg-pink-100 px-2 py-1 rounded">Fast</span>
-                </div>
-                <p className="text-sm text-slate-500 mb-4">Quick generation with default settings.</p>
-                <button
-                  onClick={handleManualTrigger}
-                  disabled={loading === 'manual'}
-                  className="w-full glass-button py-3 rounded-lg font-medium text-slate-700 hover:text-slate-900 flex items-center justify-center gap-2"
-                >
-                  {loading === 'manual' ? <Loader2 size={18} className="animate-spin" /> : <Play size={18} strokeWidth={2.5} />}
-                  Run Process
-                </button>
-              </div>
+
 
               <div className="p-4 rounded-xl bg-black/5 border border-black/5 hover:border-black/10 transition-colors">
                 <div className="flex justify-between items-center mb-3">

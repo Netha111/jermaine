@@ -14,7 +14,8 @@ import {
   CheckCircle2,
   CalendarClock,
   X,
-  Sparkles
+  Sparkles,
+  Save
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -24,6 +25,14 @@ export default function Dashboard() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
 
   const [n8nStatus, setN8nStatus] = useState<string>("Checking...");
+  // Supabase Editable Content Data
+  const [contentFields, setContentFields] = useState({
+    video_title: "",
+    post: "",
+    tags: "",
+    caption: ""
+  });
+  const [isUpdatingField, setIsUpdatingField] = useState<string | null>(null);
 
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [scheduleTarget, setScheduleTarget] = useState<'video' | 'image' | null>(null);
@@ -57,8 +66,8 @@ export default function Dashboard() {
       // Using the service_role key to bypass RLS
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlmYml2dnBid3FzZnhtYnFhc2tpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDkzMjcxNSwiZXhwIjoyMDg2NTA4NzE1fQ.D5d1hVVn1FVqWvkv-KKRmd0XBmM6OEZzaStKdJafjoQ";
 
-      // Fetching the specific row where id is 23
-      const response = await fetch(`${supabaseUrl}/rest/v1/n8n?id=eq.23&select=status`, {
+      // Fetching the specific row where id is 23 - extending select to fetch content fields
+      const response = await fetch(`${supabaseUrl}/rest/v1/n8n?id=eq.23&select=status,video_title,post,tags,caption`, {
         headers: {
           "apikey": supabaseKey,
           "Authorization": `Bearer ${supabaseKey}`
@@ -66,9 +75,22 @@ export default function Dashboard() {
       });
 
       const data = await response.json();
+
+      const updateFields = (rowData: any) => {
+        setN8nStatus(rowData.status || "Idle");
+        // Only update state if the user IS NOT actively typing in that field (to prevent their cursor from jumping/overwriting mid-word)
+        setContentFields(prev => ({
+          video_title: document.activeElement?.id === 'input-video_title' ? prev.video_title : (rowData.video_title || ""),
+          post: document.activeElement?.id === 'input-post' ? prev.post : (rowData.post || ""),
+          tags: document.activeElement?.id === 'input-tags' ? prev.tags : (rowData.tags || ""),
+          caption: document.activeElement?.id === 'input-caption' ? prev.caption : (rowData.caption || "")
+        }));
+      };
+
       if (Array.isArray(data) && data.length > 0) {
-        setN8nStatus(data[0].status || "Idle");
+        updateFields(data[0]);
       } else if (data && data.status) {
+        updateFields(data);
         // Fallback if Supabase returned a single object instead of array
         setN8nStatus(data.status);
       } else {
@@ -78,6 +100,37 @@ export default function Dashboard() {
     } catch (error) {
       console.error("Failed to fetch Supabase status", error);
       setN8nStatus("Error Connection");
+    }
+  };
+
+  const handleUpdateField = async (field: keyof typeof contentFields, value: string) => {
+    if (!value && value !== "") return;
+
+    setIsUpdatingField(field);
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://ifbivvpbwqsfxmbqaski.supabase.co";
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlmYml2dnBid3FzZnhtYnFhc2tpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDkzMjcxNSwiZXhwIjoyMDg2NTA4NzE1fQ.D5d1hVVn1FVqWvkv-KKRmd0XBmM6OEZzaStKdJafjoQ";
+
+      const response = await fetch(`${supabaseUrl}/rest/v1/n8n?id=eq.23`, {
+        method: "PATCH",
+        headers: {
+          "apikey": supabaseKey,
+          "Authorization": `Bearer ${supabaseKey}`,
+          "Content-Type": "application/json",
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({ [field]: value })
+      });
+
+      if (!response.ok) throw new Error("Failed to update database");
+      showToast(`Saved ${field.replace('_', ' ')}`, "success");
+    } catch (error) {
+      console.error(`Error updating ${field}`, error);
+      showToast(`Failed to save ${field}. Check console`, "info");
+      // Optionally trigger a full refresh to revert to the true backend state on failure
+      fetchSupabaseStatus();
+    } finally {
+      setIsUpdatingField(null);
     }
   };
 
@@ -158,7 +211,7 @@ export default function Dashboard() {
       const url = `https://n8n.srv1242805.hstgr.cloud/webhook/8f91f8e3-d06f-4e73-a545-e18065750416?time=${formattedTime}`;
       triggerWebhook(url, "post-video", "Video scheduled successfully!");
     } else {
-      const url = `https://n8n.srv1242805.hstgr.cloud/webhook-test/cd9b5af7-49b4-4213-aed2-5b7d4aa20bf4`;
+      const url = `https://n8n.srv1242805.hstgr.cloud/webhook/cd9b5af7-49b4-4213-aed2-5b7d4aa20bf4`;
       triggerWebhook(url, "post-image", "Image post scheduled successfully!", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -368,9 +421,65 @@ export default function Dashboard() {
                       <a href="https://ifbivvpbwqsfxmbqaski.supabase.co/storage/v1/object/public/n8n/image.jpg" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline break-all block mb-3 bg-white p-2 rounded border border-slate-200">
                         https://ifbivvpbwqsfxmbqaski.supabase.co/storage/v1/object/public/n8n/image.jpg
                       </a>
-                      <p className="text-sm font-medium text-slate-700 mb-1">Post Content:</p>
-                      <div className="text-sm text-slate-600 bg-white p-3 rounded border border-slate-200 h-full">
-                        🚀 Elevate your automation game with our custom n8n solutions! Save 10+ hours a week. Let's build something amazing together. #Automation #n8n #BusinessGrowth
+
+                      <div className="space-y-3 mt-1">
+                        {/* Video Title Field */}
+                        <div className="relative">
+                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Video Title</label>
+                          <input
+                            id="input-video_title"
+                            type="text"
+                            className="w-full text-sm text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none"
+                            value={contentFields.video_title}
+                            onChange={(e) => setContentFields(prev => ({ ...prev, video_title: e.target.value }))}
+                            onBlur={(e) => handleUpdateField("video_title", e.target.value)}
+                            placeholder="Enter video title..."
+                          />
+                          {isUpdatingField === "video_title" && <Loader2 size={14} className="animate-spin text-blue-500 absolute right-3 top-[34px]" />}
+                        </div>
+
+                        {/* Caption Field */}
+                        <div className="relative">
+                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Caption / Hook</label>
+                          <textarea
+                            id="input-caption"
+                            className="w-full text-sm text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all outline-none min-h-[60px] resize-y"
+                            value={contentFields.caption}
+                            onChange={(e) => setContentFields(prev => ({ ...prev, caption: e.target.value }))}
+                            onBlur={(e) => handleUpdateField("caption", e.target.value)}
+                            placeholder="Enter a caption or hook..."
+                          />
+                          {isUpdatingField === "caption" && <Loader2 size={14} className="animate-spin text-purple-500 absolute right-3 top-[34px]" />}
+                        </div>
+
+                        {/* Core Post Content Field */}
+                        <div className="relative">
+                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Core Post Content</label>
+                          <textarea
+                            id="input-post"
+                            className="w-full text-sm text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all outline-none min-h-[100px] resize-y"
+                            value={contentFields.post}
+                            onChange={(e) => setContentFields(prev => ({ ...prev, post: e.target.value }))}
+                            onBlur={(e) => handleUpdateField("post", e.target.value)}
+                            placeholder="Write the main post body here..."
+                          />
+                          {isUpdatingField === "post" && <Loader2 size={14} className="animate-spin text-pink-500 absolute right-3 top-[34px]" />}
+                        </div>
+
+                        {/* Tags Field */}
+                        <div className="relative">
+                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Hashtags</label>
+                          <input
+                            id="input-tags"
+                            type="text"
+                            className="w-full text-sm text-slate-600 bg-slate-100/50 p-2.5 rounded-lg border border-slate-200 focus:border-slate-400 focus:bg-white transition-all outline-none"
+                            value={contentFields.tags}
+                            onChange={(e) => setContentFields(prev => ({ ...prev, tags: e.target.value }))}
+                            onBlur={(e) => handleUpdateField("tags", e.target.value)}
+                            placeholder="#automation #growth"
+                          />
+                          {isUpdatingField === "tags" && <Loader2 size={14} className="animate-spin text-slate-500 absolute right-3 top-[34px]" />}
+                        </div>
                       </div>
                     </div>
                   </div>
